@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+	<title>wheel game</title> 
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
+	<script type="text/javascript" src="jquery-1.4.2.js"></script> 
+	<script type="text/javascript" src="jquery.wheelgame.js"></script> 
+	<script>
+	$(document).ready(function() {
+		$('#container').wheelgame();
+	});
+	</script>
+	<style>
+	#container {
+		width: 400px;
+		height: 400px;
+	}
+	#container > div {
+		border: solid 2px blue;
+	}
+	</style>
+</head> 
+<body>
+
+	<h1>test</h1>
+	
+	<div id="container" style="border-style: solid; border-width: 2px; border-color: red">
+		<div>Number One</div>
+		<div>Number Two</div>
+		<div>Number Three</div>
+		<div>Number Four</div>
+	</div>
+	
+	<div id="debug_console"> 
+		<h4>Debug</h4> 
+	</div> 
+</body> 
+</html>
