@@ -23,11 +23,12 @@ $.fn.wheelgame = function(settings) {
 	return this.children().each(function() {
 		var container = this;
 		var rot = (Math.random() * 360);
+		var speed = Math.random() * 10 - 5;
 		var refresh = (1/30) * 1000; // 30hz
 		$(this).setRotation(rot);
 		var upd = function() {
 			$(container).setRotation(rot);
-			rot += 2;
+			rot += speed;
 			setTimeout(upd, refresh);
 		};
 		upd();
