@@ -19,6 +19,10 @@ $.fn.wheelgame = function(settings) {
 		shuffle: false,
 	}, settings || {});
 	
+	// Hide parent DIV and create our canvas
+	this.hide();
+	var canvas = this.after('<canvas id="wheelgame_canvas" width="' + this.width() + '" height="' + this.height() + '"></canvas>');
+	
 	var num = this.children().length;
 	return this.children().each(function() {
 		var container = this;
