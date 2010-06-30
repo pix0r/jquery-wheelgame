@@ -79,38 +79,12 @@ $.fn.wheelgame = function(settings) {
 		}
 		console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ")");
 
-		// Start at center
+		// Draw pie slice
 		context.moveTo(center.x, center.y);
-		
-		// First point on circle
-		var x0 = center.x + Math.cos(degToRad(offsetDegrees));
-		var y0 = center.y + Math.sin(degToRad(offsetDegrees));
-		context.lineTo(x0, y0);
-		
-		// Second point on circle (easy!)
-		var x2 = center.x + Math.cos(degToRad(offsetDegrees + sizeDegrees));
-		var y2 = center.y + Math.sin(degToRad(offsetDegrees + sizeDegrees));
-		
-		// (Note: this shit didn't work. Just using arc() instead.)
-		// Tangent point (x0,y0-x1,y1 is tangent to arc, x1,y1-x2,y2 is tangent to arc)
-		// Angle a is half sizeDegrees, used for computing new radius
-		var a = degToRad(sizeDegrees / 2);
-		// New radius - radius from center to tangent point
-		var r1 = (radius * Math.sin(a)) + (radius * Math.sin(a) * Math.atan(a));
-		// Tangent point coords
-		var x1 = r1 * Math.cos(degToRad(offsetDegrees + (sizeDegrees / 2)));
-		var y1 = r1 * Math.cos(degToRad(offsetDegrees + (sizeDegrees / 2)));
-		//context.arcTo(x1, y1, x2, y2, radius);
-
 		context.arc(center.x, center.y, radius, degToRad(offsetDegrees), degToRad(offsetDegrees + sizeDegrees));
-		
-		// Finish at center
-		context.lineTo(center.x, center.y);
 		context.closePath();
 		context.stroke();
 		context.fill();
-		
-		//return;
 		
 		// Draw text
 		context.fillStyle = 'black';
