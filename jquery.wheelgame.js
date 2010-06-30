@@ -39,7 +39,6 @@ $.fn.wheelgame = function(settings) {
 	var slices = [];
 	
 	var degToRad = function(deg) {
-		console.log('degToRad('+deg+')='+(deg * (Math.PI / 180.0)));
 		return deg * (Math.PI / 180.0);
 	};
 	var radToDeg = function(rad) {
@@ -65,14 +64,19 @@ $.fn.wheelgame = function(settings) {
 		
 		// Draw slices
 		for (var i = 0; i < slices.length; i++) {
-			context.fillStyle = settings.colors[i % settings.colors.length];
-			drawSlice(slices[i], deg, degPerSlice, context);
+			drawSlice(slices[i], deg, degPerSlice, context, settings.colors[i % settings.colors.length], null);
 			deg += degPerSlice;
+			//break;
 		}
 	};
 	
-	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context) {
-		var color = color || 'red';
+	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context, fillStyle, strokeStyle) {
+		if (fillStyle) {
+			context.fillStyle = fillStyle;
+		}
+		if (strokeStyle) {
+			context.strokeStyle = strokeStyle;
+		}
 		console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ")");
 
 		// Start at center
@@ -103,9 +107,22 @@ $.fn.wheelgame = function(settings) {
 		// Finish at center
 		context.lineTo(center.x, center.y);
 		context.closePath();
-		
 		context.stroke();
 		context.fill();
+		
+		//return;
+		
+		// Draw text
+		context.fillStyle = 'black';
+		context.strokeStyle = 'black';
+		//context.rotate(degToRad(offsetDegrees + (sizeDegrees / 2)));
+		context.translate(center.x + (radius / 2), center.y);
+		context.textAlign = 'center';
+		context.fillText(slice.name, 0, 0);
+		context.closePath();
+		
+		// Reset transform (load identity)
+		context.setTransform(1, 0, 0, 1, 0, 0);
 	};
 	
 	var shuffle = function(arr) {
