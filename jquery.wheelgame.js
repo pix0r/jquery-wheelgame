@@ -17,7 +17,8 @@ $.fn.setRotation = function(degrees) {
 $.fn.wheelgame = function(settings) {
 	settings = $.extend({
 		shuffle: false,
-		colors: ['yellow', 'green', 'blue', 'yellow', 'orange', 'gray', 'white']
+		colors: ['yellow', 'green', 'blue', 'orange', 'gray', 'white', 'red', 'pink', 'aqua'],
+		borderColor: 'black',
 	}, settings || {});
 	
 	// Point object
@@ -51,7 +52,8 @@ $.fn.wheelgame = function(settings) {
 			return;
 		}
 		var context = canvas.getContext('2d');
-		context.strokeStyle = 'black';
+		context.strokeStyle = settings.borderColor;
+		context.fillStyle = 'white';
 		context.lineWidth = 3;
 		
 		var degPerSlice = 360 / slices.length;
@@ -59,41 +61,42 @@ $.fn.wheelgame = function(settings) {
 		// Draw outer circle
 		context.beginPath();
 		context.arc(center.x, center.y, radius, 0, Math.PI * 2, true);
-		context.closePath();
 		context.stroke();
+		context.closePath();
 		
 		// Draw slices
 		for (var i = 0; i < slices.length; i++) {
 			drawSlice(slices[i], deg, degPerSlice, context, settings.colors[i % settings.colors.length], null);
 			deg += degPerSlice;
-			//break;
 		}
 	};
 	
-	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context, fillStyle, strokeStyle) {
-		if (fillStyle) {
-			context.fillStyle = fillStyle;
-		}
-		if (strokeStyle) {
-			context.strokeStyle = strokeStyle;
-		}
-		console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ")");
+	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context, fillStyle, strokeStyle, textColor) {
+		console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ", "+ context + ", " + fillStyle + ", " + strokeStyle + ", " + textColor + ")");
+
+		fillStyle = fillStyle || 'white';
+		strokeStyle = strokeStyle || 'black';
+		textColor = textColor || 'black';
+		
+		console.log('fillStyle='+fillStyle);
+		context.fillStyle = fillStyle;
+		context.strokeStyle = strokeStyle;
 
 		// Draw pie slice
+		context.beginPath();
 		context.moveTo(center.x, center.y);
-		context.arc(center.x, center.y, radius, degToRad(offsetDegrees), degToRad(offsetDegrees + sizeDegrees));
-		context.closePath();
+		context.arc(center.x, center.y, radius, degToRad(offsetDegrees), degToRad(offsetDegrees + sizeDegrees), 0);
+		context.lineTo(center.x, center.y);
 		context.stroke();
 		context.fill();
+		context.closePath();
 		
 		// Draw text
 		context.fillStyle = 'black';
-		context.strokeStyle = 'black';
-		//context.rotate(degToRad(offsetDegrees + (sizeDegrees / 2)));
+		context.rotate(degToRad(offsetDegrees + (sizeDegrees / 2)));
 		context.translate(center.x + (radius / 2), center.y);
 		context.textAlign = 'center';
 		context.fillText(slice.name, 0, 0);
-		context.closePath();
 		
 		// Reset transform (load identity)
 		context.setTransform(1, 0, 0, 1, 0, 0);
@@ -121,7 +124,6 @@ $.fn.wheelgame = function(settings) {
 	if (settings.shuffle) {
 		shuffle(slices);
 	}
-	shuffle(settings.colors);
 	
 	drawWheel();
 };
