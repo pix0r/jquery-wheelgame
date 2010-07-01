@@ -38,6 +38,10 @@ $.fn.wheelgame = function(settings) {
 	this.after('<canvas id="wheelgame_canvas" width="' + size.width + '" height="' + size.height + '"></canvas>');
 	var canvas = $('#wheelgame_canvas').get(0);
 	var slices = [];
+	var dragging = false;
+	var dragLastAngle = 0;
+	var dragLastTime = 0;
+	var dragAngleOffset = 0;
 	
 	var degToRad = function(deg) {
 		return deg * (Math.PI / 180.0);
@@ -52,6 +56,7 @@ $.fn.wheelgame = function(settings) {
 			return;
 		}
 		var context = canvas.getContext('2d');
+		canvas.width = canvas.width; // clear canvas
 		context.strokeStyle = settings.borderColor;
 		context.fillStyle = 'white';
 		context.lineWidth = 3;
@@ -72,13 +77,12 @@ $.fn.wheelgame = function(settings) {
 	};
 	
 	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context, fillStyle, strokeStyle, textColor) {
-		console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ", "+ context + ", " + fillStyle + ", " + strokeStyle + ", " + textColor + ")");
+		//console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ", "+ context + ", " + fillStyle + ", " + strokeStyle + ", " + textColor + ")");
 
 		fillStyle = fillStyle || 'white';
 		strokeStyle = strokeStyle || 'black';
 		textColor = textColor || 'black';
 		
-		console.log('fillStyle='+fillStyle);
 		context.fillStyle = fillStyle;
 		context.strokeStyle = strokeStyle;
 
@@ -102,6 +106,51 @@ $.fn.wheelgame = function(settings) {
 		context.setTransform(1, 0, 0, 1, 0, 0);
 	};
 	
+	var updateDrag = function(pointFromCenter) {
+		dragLastTime = new Date().getTime();
+		dragLastAngle = radToDeg(Math.atan(pointFromCenter.y / pointFromCenter.x));
+		if (pointFromCenter.x >= 0 && pointFromCenter.y >= 0) {
+			// This quadrant is already correct
+		} else if (pointFromCenter.x <= 0) {
+			// Both quadrants same
+			dragLastAngle += 180;
+		} else {
+			dragLastAngle += 360;
+		}
+	};
+	
+	$(canvas).mousedown(function(e) {
+		var mousePoint = new Point(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
+		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
+		var oldDragAngle = dragLastAngle;
+
+		dragging = true;
+		updateDrag(pointFromCenter);
+		dragAngleOffset = (360 + dragLastAngle - oldDragAngle) % 360;
+	});
+	
+	$(canvas).mouseup(function(e) {
+		if (!dragging) {
+			return;
+		}
+		dragging = false;
+		
+		// TODO: Start animation
+	});
+	
+	$(canvas).mousemove(function(e) {
+		if (!dragging) {
+			return;
+		}
+		
+		var mousePoint = new Point(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
+		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
+
+		updateDrag(pointFromCenter);
+		drawWheel((360 + dragLastAngle - dragAngleOffset) % 360);
+		console.log('Continued drag with angle: ' + dragLastAngle);
+	});
+	
 	var shuffle = function(arr) {
 		// Fisher-Yates shuffle
 		for (var i = arr.length - 1; i; --i) {
@@ -114,6 +163,7 @@ $.fn.wheelgame = function(settings) {
 	
 	var num = this.children().length;
 	this.children().each(function() {
+		var elem = this;
 		var slice = {url: null, name: $(this).text()};
 		if ($(this).find('a').length) {
 			slice.url = $(this).find('a').attr('href');
@@ -125,5 +175,5 @@ $.fn.wheelgame = function(settings) {
 		shuffle(slices);
 	}
 	
-	drawWheel();
+	drawWheel(0);
 };
