@@ -19,6 +19,8 @@ $.fn.wheelgame = function(settings) {
 		shuffle: false,
 		colors: ['yellow', 'green', 'blue', 'orange', 'gray', 'white', 'red', 'pink', 'aqua'],
 		borderColor: 'black',
+		fps: 30,
+		smoothFrames: 3,
 	}, settings || {});
 	
 	// Point object
@@ -38,7 +40,13 @@ $.fn.wheelgame = function(settings) {
 	this.after('<canvas id="wheelgame_canvas" width="' + size.width + '" height="' + size.height + '"></canvas>');
 	var canvas = $('#wheelgame_canvas').get(0);
 	var slices = [];
+	var animating = false;
+	var lastFrameTime = 0;
+	var tickSpeed = (1 / settings.fps) * 1000;
+	var velocity = 0;
 	var dragging = false;
+	var dragLastAngles = [];
+	var dragLastTimes = [];
 	var dragLastAngle = 0;
 	var dragLastTime = 0;
 	var dragAngleOffset = 0;
@@ -78,8 +86,6 @@ $.fn.wheelgame = function(settings) {
 	};
 	
 	var drawSlice = function(slice, offsetDegrees, sizeDegrees, context, fillStyle, strokeStyle, textColor) {
-		//console.log("drawSlice(" + slice.name + ", " + offsetDegrees + ", " + sizeDegrees + ", "+ context + ", " + fillStyle + ", " + strokeStyle + ", " + textColor + ")");
-
 		fillStyle = fillStyle || 'white';
 		strokeStyle = strokeStyle || 'black';
 		textColor = textColor || 'black';
@@ -107,6 +113,33 @@ $.fn.wheelgame = function(settings) {
 		context.setTransform(1, 0, 0, 1, 0, 0);
 	};
 	
+	var animateFrame = function() {
+		var decayFactor = 0.99;
+		var currTime = new Date().getTime();
+		if (!animating) {
+			return;
+		}
+		if (lastFrameTime < 1) {
+			lastFrameTime = currTime;
+			setTimeout(animateFrame, tickSpeed);
+			return;
+		}
+		var tDiff = (currTime - lastFrameTime) / 1000;
+		var angleChange = velocity * tDiff;
+		var oldWheelAngle = wheelAngle;
+		velocity -= (velocity * decayFactor * tDiff);
+		wheelAngle = (3600 + angleChange + wheelAngle) % 360;
+		drawWheel(wheelAngle);
+		lastFrameTime = currTime;
+		if (Math.abs(velocity) > 1.0) {
+			setTimeout(animateFrame, tickSpeed);
+		} else {
+			animating = false;
+			velocity = 0;
+			lastFrameTime = 0;
+		}
+	};
+	
 	var updateDrag = function(pointFromCenter) {
 		dragLastTime = new Date().getTime();
 		dragLastAngle = radToDeg(Math.atan(pointFromCenter.y / pointFromCenter.x));
@@ -118,6 +151,12 @@ $.fn.wheelgame = function(settings) {
 		} else {
 			dragLastAngle += 360;
 		}
+		dragLastAngles.unshift(dragLastAngle);
+		dragLastTimes.unshift(dragLastTime);
+		if (dragLastAngles.length > settings.smoothFrames) {
+			dragLastAngles.pop();
+			dragLastTimes.pop();
+		}
 	};
 	
 	$(canvas).mousedown(function(e) {
@@ -125,6 +164,10 @@ $.fn.wheelgame = function(settings) {
 		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
 
 		dragging = true;
+		animating = false;
+		velocity = 0;
+		dragLastAngles = [];
+		dragLastTimes = [];
 		updateDrag(pointFromCenter);
 		dragAngleOffset = (360 + dragLastAngle - wheelAngle) % 360;
 	});
@@ -134,8 +177,25 @@ $.fn.wheelgame = function(settings) {
 			return;
 		}
 		dragging = false;
-		
-		// TODO: Start animation
+
+		var mousePoint = new Point(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
+		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
+		var oldAngle = dragLastAngles[dragLastAngles.length - 1];
+		var oldTime = dragLastTimes[dragLastTimes.length - 1];
+		updateDrag(pointFromCenter);
+		var currTime = new Date().getTime();
+		var currVelocity = (dragLastAngle - oldAngle) / ((dragLastTime - oldTime) / 1000);
+		if (Math.abs(dragLastAngle - oldAngle) > 180) {
+			// Correct for pulling through the 0deg mark
+			currVelocity *= -1;
+		}
+		if (Math.abs(currVelocity) > 1) {
+			// Start animation
+			console.log('Throwing with velocity ' + currVelocity);
+			velocity = currVelocity;
+			animating = true;
+			animateFrame();
+		}
 	});
 	
 	$(canvas).mousemove(function(e) {
@@ -149,7 +209,6 @@ $.fn.wheelgame = function(settings) {
 		updateDrag(pointFromCenter);
 		wheelAngle = (360 + dragLastAngle - dragAngleOffset) % 360;
 		drawWheel(wheelAngle);
-		console.log('Continued drag. Mouse angle: ' + dragLastAngle + ' wheelAngle: ' + wheelAngle);
 	});
 	
 	var shuffle = function(arr) {
