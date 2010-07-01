@@ -104,8 +104,10 @@ $.fn.wheelgame = function(settings) {
 		
 		// Draw text
 		context.fillStyle = 'black';
-		context.rotate(degToRad(offsetDegrees + (sizeDegrees / 2)));
-		context.translate(center.x + (radius / 2), center.y);
+		var sliceCenterRads = degToRad(offsetDegrees + (sizeDegrees / 2));
+		var sliceCenterX = (radius * 0.7) * Math.cos(sliceCenterRads);
+		var sliceCenterY = (radius * 0.7) * Math.sin(sliceCenterRads);
+		context.translate(center.x + sliceCenterX, center.y + sliceCenterY);
 		context.textAlign = 'center';
 		context.fillText(slice.name, 0, 0);
 		
