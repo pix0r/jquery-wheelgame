@@ -42,6 +42,7 @@ $.fn.wheelgame = function(settings) {
 	var dragLastAngle = 0;
 	var dragLastTime = 0;
 	var dragAngleOffset = 0;
+	var wheelAngle = 0;
 	
 	var degToRad = function(deg) {
 		return deg * (Math.PI / 180.0);
@@ -122,11 +123,10 @@ $.fn.wheelgame = function(settings) {
 	$(canvas).mousedown(function(e) {
 		var mousePoint = new Point(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
 		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
-		var oldDragAngle = dragLastAngle;
 
 		dragging = true;
 		updateDrag(pointFromCenter);
-		dragAngleOffset = (360 + dragLastAngle - oldDragAngle) % 360;
+		dragAngleOffset = (360 + dragLastAngle - wheelAngle) % 360;
 	});
 	
 	$(canvas).mouseup(function(e) {
@@ -147,8 +147,9 @@ $.fn.wheelgame = function(settings) {
 		var pointFromCenter = new Point(mousePoint.x - center.x, mousePoint.y - center.y);
 
 		updateDrag(pointFromCenter);
-		drawWheel((360 + dragLastAngle - dragAngleOffset) % 360);
-		console.log('Continued drag with angle: ' + dragLastAngle);
+		wheelAngle = (360 + dragLastAngle - dragAngleOffset) % 360;
+		drawWheel(wheelAngle);
+		console.log('Continued drag. Mouse angle: ' + dragLastAngle + ' wheelAngle: ' + wheelAngle);
 	});
 	
 	var shuffle = function(arr) {
