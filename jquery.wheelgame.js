@@ -20,7 +20,10 @@ $.fn.wheelgame = function(settings) {
 		colors: ['yellow', 'green', 'blue', 'orange', 'gray', 'white', 'red', 'pink', 'aqua'],
 		borderColor: 'black',
 		fps: 30,
-		smoothFrames: 3,
+		smoothFrames: 10,
+		update: function() {},
+		finished: function() {},
+		initialAngle: Math.random() * 360,
 	}, settings || {});
 	
 	// Point object
@@ -50,7 +53,8 @@ $.fn.wheelgame = function(settings) {
 	var dragLastAngle = 0;
 	var dragLastTime = 0;
 	var dragAngleOffset = 0;
-	var wheelAngle = 0;
+	var wheelAngle = settings.initialAngle;
+	var selectedSlice = null;
 	
 	var degToRad = function(deg) {
 		return deg * (Math.PI / 180.0);
@@ -81,7 +85,15 @@ $.fn.wheelgame = function(settings) {
 		// Draw slices
 		for (var i = 0; i < slices.length; i++) {
 			drawSlice(slices[i], deg, degPerSlice, context, settings.colors[i % settings.colors.length], null);
-			deg += degPerSlice;
+			if ((deg == 0) || (deg + degPerSlice > 360)) {
+				// Selected!
+				if (selectedSlice != slices[i]) {
+					console.log('slices[i]='+slices[i].name+ ' (deg='+deg+' degPerSlice='+degPerSlice+')');
+					selectedSlice = slices[i];
+					settings.update(selectedSlice);
+				}
+			}
+			deg = (deg + degPerSlice) % 360;
 		}
 	};
 	
@@ -115,6 +127,18 @@ $.fn.wheelgame = function(settings) {
 		context.setTransform(1, 0, 0, 1, 0, 0);
 	};
 	
+	this.spin = function(v) {
+		velocity = v || Math.random() * 500 + 200;
+		animating = true;
+		animateFrame();
+	};
+	
+	this.setAngle = function(a) {
+		animating = false;
+		wheelAngle = a || 0;
+		drawWheel(wheelAngle);
+	};
+	
 	var animateFrame = function() {
 		var decayFactor = 0.99;
 		var currTime = new Date().getTime();
@@ -136,9 +160,11 @@ $.fn.wheelgame = function(settings) {
 		if (Math.abs(velocity) > 1.0) {
 			setTimeout(animateFrame, tickSpeed);
 		} else {
+			// Stop animation
 			animating = false;
 			velocity = 0;
 			lastFrameTime = 0;
+			settings.finished(selectedSlice);
 		}
 	};
 	
@@ -237,5 +263,6 @@ $.fn.wheelgame = function(settings) {
 		shuffle(slices);
 	}
 	
-	drawWheel(0);
+	drawWheel(settings.initialAngle);
+	return this;
 };

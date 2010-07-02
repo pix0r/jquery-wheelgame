@@ -7,8 +7,18 @@
 	<script type="text/javascript" src="jquery.wheelgame.js"></script> 
 	<script>
 	$(document).ready(function() {
-		$('#container').wheelgame({
+		var wheelgame = $('#container').wheelgame({
 			shuffle: true,
+			update: function(slice) {
+				console.log('update');
+				$('#sel_value').text(slice.name);
+			},
+			finished: function(slice) {
+				$('#sel_value').text(slice.name + ' (finished)');
+			}
+		});
+		$('#spinbtn').click(function() {
+			wheelgame.spin();
 		});
 	});
 	</script>
@@ -32,5 +42,10 @@
 		<div>Number Three</div>
 		<div>Number Four</div>
 	</div>
+	
+	<form onsubmit="return false;">
+		<input type="submit" name="spin" id="spinbtn" value="Spin!" />
+	</form>
+	<p>Wheel sez: <span id="sel_value"></span></p>
 </body> 
 </html>
