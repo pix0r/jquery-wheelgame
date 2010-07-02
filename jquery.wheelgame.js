@@ -128,7 +128,7 @@ $.fn.wheelgame = function(settings) {
 	};
 	
 	this.spin = function(v) {
-		velocity = v || Math.random() * 500 + 200;
+		velocity = v || Math.random() * 600 + 400;
 		animating = true;
 		animateFrame();
 	};
